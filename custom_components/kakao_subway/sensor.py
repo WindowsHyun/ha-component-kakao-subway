@@ -14,7 +14,7 @@ from homeassistant.util import Throttle
 _LOGGER = logging.getLogger(__name__)
 
 CONF_STATION_ID = "station_id"
-DEFAULT_NAME = "Seoul Subway"
+DEFAULT_NAME = "Kakao Subway"
 SCAN_INTERVAL = timedelta(minutes=1)
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
@@ -23,7 +23,7 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
 })
 
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
-    """Set up the Seoul Subway sensor."""
+    """Set up the Kakao Subway sensor."""
     station_id = config[CONF_STATION_ID]
     name = config[CONF_NAME]
 
