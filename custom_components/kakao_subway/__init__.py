@@ -23,7 +23,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     """Set up Kakao Subway from a config entry."""
     session = async_get_clientsession(hass)
 
-    coordinator = SeoulSubwayDataUpdateCoordinator(hass, session, entry)
+    coordinator = KakaoSubwayDataUpdateCoordinator(hass, session, entry)
 
     await coordinator.async_refresh()
 
@@ -54,7 +54,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
 
     return unload_ok
 
-class SeoulSubwayDataUpdateCoordinator(DataUpdateCoordinator):
+class KakaoSubwayDataUpdateCoordinator(DataUpdateCoordinator):
     """Class to manage fetching Kakao Subway data."""
 
     def __init__(self, hass, session, entry):

@@ -1,19 +1,20 @@
 {
     "config": {
-        "step": {
-            "user": {
-                "data": {
-                    "station_id": "역 ID"
-                }
-            }
-        },
-        "error": {
-            "cannot_connect": "연결 실패",
-            "invalid_auth": "인증 오류",
-            "unknown": "알 수 없는 오류"
-        },
-        "abort": {
-            "already_configured": "장치가 이미 구성됨"
+      "step": {
+        "user": {
+          "data": {
+            "station_id": "역 ID",
+            "station_name": "역 이름"
+          }
         }
+      },
+      "error": {
+        "cannot_connect": "연결 실패",
+        "invalid_auth": "인증 오류",
+        "unknown": "알 수 없는 오류"
+      },
+      "abort": {
+        "already_configured": "장치가 이미 구성됨"
+      }
     }
-}
+  }
