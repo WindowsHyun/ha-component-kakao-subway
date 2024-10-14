@@ -1,0 +1,19 @@
+{
+    "config": {
+      "step": {
+        "user": {
+          "data": {
+            "station_id": "지하철 ID"
+          }
+        }
+      },
+      "error": {
+        "cannot_connect": "연결 실패",
+        "invalid_auth": "인증 실패",
+        "unknown": "알수 없는 오류"
+      },
+      "abort": {
+        "already_configured": "이미 설정되어 있습니다."
+      }
+    }
+  }
