@@ -1,0 +1,10 @@
+{
+    "domain": "kakao_subway",
+    "name": "kakao Subway",
+    "documentation": "https://github.com/WindowsHyun/ha-component-kakao-subway",
+    "dependencies": [],
+    "codeowners": ["@WindowsHyun"],
+    "requirements": [],
+    "iot_class": "cloud_polling",
+    "version": "0.1.0"
+  }
