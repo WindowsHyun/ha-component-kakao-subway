@@ -8,8 +8,8 @@ from homeassistant.exceptions import HomeAssistantError
 
 from .const import DOMAIN
 
-class SeoulSubwayConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
-    """Handle a config flow for Seoul Subway."""
+class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
+    """Handle a config flow for Kakao Subway."""
 
     VERSION = 1
 
@@ -30,7 +30,7 @@ class SeoulSubwayConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         except Exception:  # pylint: disable=broad-except
             errors["base"] = "unknown"
         else:
-            return self.async_create_entry(title="Seoul Subway", data=user_input)
+            return self.async_create_entry(title="Kakao Subway", data=user_input)
 
         return self.async_show_form(
             step_id="user", data_schema=vol.Schema({vol.Required("station_id"): str}), errors=errors
