@@ -33,7 +33,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         except Exception:  # pylint: disable=broad-except
             errors["base"] = "unknown"
         else:
-            return self.async_create_entry(title=f"Kakao Subway - {user_input['station_name']}", data=user_input)
+            return self.async_create_entry(title=f"{user_input['station_name']} ({user_input['station_id']})", data=user_input)
 
         return self.async_show_form(
             step_id="user", 
