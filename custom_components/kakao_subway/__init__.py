@@ -5,7 +5,7 @@ from datetime import timedelta
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
-from homeassistant.helpers.aiohttp_client import get_clientsession
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .const import DOMAIN
@@ -21,7 +21,7 @@ async def async_setup(hass: HomeAssistant, config: dict):
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     """Set up Kakao Subway from a config entry."""
-    session = get_clientsession(hass)
+    session = async_get_clientsession(hass)
 
     coordinator = KakaoSubwayDataUpdateCoordinator(hass, session, entry)
 
@@ -74,12 +74,12 @@ class KakaoSubwayDataUpdateCoordinator(DataUpdateCoordinator):
         try:
             url = f"https://place.map.kakao.com/m/main/v/{self.station_id}"
             async with self.session.get(url, timeout=10) as resp:
-                resp.raise_for_status()  # HTTP 에러 상태 코드 처리
-                data = await resp.json() 
+                if resp.status != 200:
+                    raise Exception(f"API 요청 실패: 상태 코드 {resp.status}")
+                data = await resp.json(content_type=None)  # content_type=None 추가
 
-                # 데이터 유효성 검사
                 if 'basicInfo' not in data or 'timeInfo' not in data['basicInfo']:
-                    raise ValueError("잘못된 API 응답 구조: 필수 키가 없습니다.")
+                    raise Exception("잘못된 API 응답 구조: 필수 키가 없습니다.")
 
                 time_info = data['basicInfo']['timeInfo']
                 up_info = time_info.get('upTimeInfo', [])
@@ -90,12 +90,9 @@ class KakaoSubwayDataUpdateCoordinator(DataUpdateCoordinator):
                     "down_info": down_info
                 }
 
-        except aiohttp.ClientResponseError as e:
-            raise UpdateFailed(f"API 요청 실패: {e}") from e
         except (asyncio.TimeoutError, aiohttp.ClientError) as e:
-            raise UpdateFailed(f"API 통신 에러: {e}") from e
-        except (json.JSONDecodeError, ValueError) as e:
-            raise UpdateFailed(f"데이터 처리 에러: {e}") from e
-        except Exception as e:
-            _LOGGER.exception("예상치 못한 에러: %s", e)  # 예외 로깅 추가
-            raise UpdateFailed(f"예상치 못한 에러: {e}") from e
+            raise UpdateFailed(f"API 통신 에러: {e}")
+        except json.JSONDecodeError as e:
+            raise UpdateFailed(f"JSON 응답 디코딩 에러: {e}")
+        except Exception as err:
+            raise UpdateFailed(f"예상치 못한 에러: {err}")
