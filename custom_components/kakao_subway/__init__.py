@@ -74,10 +74,12 @@ class KakaoSubwayDataUpdateCoordinator(DataUpdateCoordinator):
         _LOGGER.debug("Fetching data from Kakao Subway API...")  # 로그 추가
         try:
             url = f"https://place.map.kakao.com/m/main/v/{self.station_id}"
+            _LOGGER.debug("URL: %s", url)
             async with self.session.get(url, timeout=10) as resp:
                 if resp.status != 200:
                     raise Exception(f"API 요청 실패: 상태 코드 {resp.status}")
                 data = await resp.json(content_type=None)  # content_type=None 추가
+                _LOGGER.debug("API Response: %s", data)
 
                 if 'basicInfo' not in data or 'timeInfo' not in data['basicInfo']:
                     raise Exception("잘못된 API 응답 구조: 필수 키가 없습니다.")
@@ -85,6 +87,10 @@ class KakaoSubwayDataUpdateCoordinator(DataUpdateCoordinator):
                 time_info = data['basicInfo']['timeInfo']
                 up_info = time_info.get('upTimeInfo', [])
                 down_info = time_info.get('downTimeInfo', [])
+
+                _LOGGER.debug("Time Info: %s", time_info)  # 로그 추가
+                _LOGGER.debug("Up Info: %s", up_info)    # 로그 추가
+                _LOGGER.debug("Down Info: %s", down_info)  # 로그 추가
 
                 return {
                     "up_info": up_info,
