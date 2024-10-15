@@ -3,7 +3,6 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
 
 from .const import DOMAIN
 
@@ -11,15 +10,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
     """Set up the Kakao Subway sensors."""
     coordinator = hass.data[DOMAIN][entry.entry_id]
     station_name = entry.data["station_name"]
-    
-    sensors = []
-    for direction in ["upbound", "downbound"]:
-        for index in [1, 2]:
-            sensors.extend([
-                KakaoSubwayDestinationSensor(coordinator, direction, index, station_name),
-                KakaoSubwayTimeSensor(coordinator, direction, index, station_name)
-            ])
-    
+
+    sensors = [
+        sensor_type(coordinator, direction, index, station_name)
+        for direction in ["upbound", "downbound"]
+        for index in [1, 2]
+        for sensor_type in [KakaoSubwayDestinationSensor, KakaoSubwayTimeSensor]
+    ]
+
     async_add_entities(sensors)
 
 class KakaoSubwayBaseSensor(CoordinatorEntity, SensorEntity):
@@ -37,7 +35,7 @@ class KakaoSubwayBaseSensor(CoordinatorEntity, SensorEntity):
     @property
     def name(self):
         """Return the name of the sensor."""
-        return f"{self.station_name} {self.direction.title()} {self.index} {self.sensor_type.title()}"
+        return f"{self.station_name} {self.direction.title()} #{self.index} {self.sensor_type.title()}"
 
 class KakaoSubwayDestinationSensor(KakaoSubwayBaseSensor):
     """Representation of a Kakao Subway destination sensor."""
@@ -49,8 +47,10 @@ class KakaoSubwayDestinationSensor(KakaoSubwayBaseSensor):
     @property
     def state(self):
         """Return the state of the sensor."""
-        info = self.coordinator.data[f"{self.direction[0]}p_info"][self.index - 1]
-        return info["endStationName"]
+        info = self.coordinator.data.get(f"{self.direction[0]}p_info", [])
+        if 0 <= self.index - 1 < len(info):
+            return info[self.index - 1].get("endStationName")
+        return None
 
 class KakaoSubwayTimeSensor(KakaoSubwayBaseSensor):
     """Representation of a Kakao Subway time sensor."""
@@ -62,5 +62,7 @@ class KakaoSubwayTimeSensor(KakaoSubwayBaseSensor):
     @property
     def state(self):
         """Return the state of the sensor."""
-        info = self.coordinator.data[f"{self.direction[0]}p_info"][self.index - 1]
-        return info["afterMinute"]
+        info = self.coordinator.data.get(f"{self.direction[0]}p_info", [])
+        if 0 <= self.index - 1 < len(info):
+            return info[self.index - 1].get("afterMinute")
+        return None
