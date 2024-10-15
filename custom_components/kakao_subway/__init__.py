@@ -71,6 +71,7 @@ class KakaoSubwayDataUpdateCoordinator(DataUpdateCoordinator):
 
     async def _async_update_data(self):
         """API에서 데이터를 가져옵니다."""
+        _LOGGER.debug("Fetching data from Kakao Subway API...")  # 로그 추가
         try:
             url = f"https://place.map.kakao.com/m/main/v/{self.station_id}"
             async with self.session.get(url, timeout=10) as resp:
@@ -91,8 +92,11 @@ class KakaoSubwayDataUpdateCoordinator(DataUpdateCoordinator):
                 }
 
         except (asyncio.TimeoutError, aiohttp.ClientError) as e:
+            _LOGGER.error("Error communicating with API: %s", e)  # 로그 추가
             raise UpdateFailed(f"API 통신 에러: {e}")
         except json.JSONDecodeError as e:
+            _LOGGER.error("Error decoding JSON response: %s", e)  # 로그 추가
             raise UpdateFailed(f"JSON 응답 디코딩 에러: {e}")
         except Exception as err:
+            _LOGGER.exception("Unexpected error: %s", err)  # 로그 추가
             raise UpdateFailed(f"예상치 못한 에러: {err}")
