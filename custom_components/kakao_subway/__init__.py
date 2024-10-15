@@ -21,7 +21,7 @@ async def async_setup(hass: HomeAssistant, config: dict):
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     """Set up Kakao Subway from a config entry."""
-    session = await async_get_clientsession(hass) 
+    session = async_get_clientsession(hass)
 
     coordinator = KakaoSubwayDataUpdateCoordinator(hass, session, entry)
 
