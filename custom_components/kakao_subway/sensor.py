@@ -8,7 +8,7 @@ from .const import DOMAIN, _LOGGER
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback):
     """Set up the Kakao Subway sensors."""
-    _LOGGER.debug("Setting up Kakao Subway sensor platform...")  # 로그 추가
+    _LOGGER.debug("Setting up Kakao Subway sensor platform...")
     coordinator = hass.data[DOMAIN][entry.entry_id]
     station_name = entry.data["station_name"]
 
@@ -20,7 +20,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
     ]
 
     async_add_entities(sensors)
-    _LOGGER.debug("Added Kakao Subway sensors: %s", sensors)  # 로그 추가
+    _LOGGER.debug("Added Kakao Subway sensors: %s", sensors)
 
 class KakaoSubwayBaseSensor(CoordinatorEntity, SensorEntity):
     """Base class for Kakao Subway sensors."""
@@ -33,7 +33,7 @@ class KakaoSubwayBaseSensor(CoordinatorEntity, SensorEntity):
         self.station_name = station_name
         self.sensor_type = sensor_type
         self._attr_unique_id = f"{coordinator.station_id}_{direction}_{index}_{sensor_type}"
-        _LOGGER.debug("Initialized sensor: %s", self._attr_unique_id)  # 로그 추가
+        _LOGGER.debug("Initialized sensor: %s", self._attr_unique_id)
 
     @property
     def name(self):
@@ -50,12 +50,12 @@ class KakaoSubwayDestinationSensor(KakaoSubwayBaseSensor):
     @property
     def state(self):
         """Return the state of the sensor."""
-        _LOGGER.debug("Getting state for destination sensor...")  # 로그 추가
+        _LOGGER.debug("Getting state for destination sensor...")
         info = self.coordinator.data.get(f"{self.direction[0]}p_info", [])
         if 0 <= self.index - 1 < len(info):
-            _LOGGER.debug("Destination: %s", info[self.index - 1].get("endStationName"))  # 로그 추가
+            _LOGGER.debug("Destination: %s", info[self.index - 1].get("endStationName"))
             return info[self.index - 1].get("endStationName")
-        _LOGGER.warning("Destination info not found for %s %s #%s", self.station_name, self.direction, self.index)  # 로그 추가
+        _LOGGER.warning("Destination info not found for %s %s #%s", self.station_name, self.direction, self.index)
         return None
 
 class KakaoSubwayTimeSensor(KakaoSubwayBaseSensor):
@@ -68,10 +68,10 @@ class KakaoSubwayTimeSensor(KakaoSubwayBaseSensor):
     @property
     def state(self):
         """Return the state of the sensor."""
-        _LOGGER.debug("Getting state for time sensor...")  # 로그 추가
+        _LOGGER.debug("Getting state for time sensor...")
         info = self.coordinator.data.get(f"{self.direction[0]}p_info", [])
         if 0 <= self.index - 1 < len(info):
-            _LOGGER.debug("Time left: %s", info[self.index - 1].get("afterMinute"))  # 로그 추가
+            _LOGGER.debug("Time left: %s", info[self.index - 1].get("afterMinute"))
             return info[self.index - 1].get("afterMinute")
-        _LOGGER.warning("Time info not found for %s %s #%s", self.station_name, self.direction, self.index)  # 로그 추가
+        _LOGGER.warning("Time info not found for %s %s #%s", self.station_name, self.direction, self.index)
         return None

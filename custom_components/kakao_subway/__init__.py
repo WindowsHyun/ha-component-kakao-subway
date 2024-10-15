@@ -8,9 +8,7 @@ from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from .const import DOMAIN
-
-_LOGGER = logging.getLogger(__name__)
+from .const import DOMAIN, _LOGGER
 
 PLATFORMS = ["sensor"]
 
@@ -27,15 +25,16 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
 
     await coordinator.async_refresh()
 
+    # 1초 정도 기다립니다.
+    await asyncio.sleep(1)
+
     if not coordinator.last_update_success:
         raise ConfigEntryNotReady
 
     hass.data[DOMAIN][entry.entry_id] = coordinator
 
-    for platform in PLATFORMS:
-        hass.async_create_task(
-            hass.config_entries.async_forward_entry_setup(entry, platform)
-        )
+    # async_forward_entry_setup -> async_forward_entry_setups
+    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     return True
 
@@ -66,19 +65,19 @@ class KakaoSubwayDataUpdateCoordinator(DataUpdateCoordinator):
             hass,
             _LOGGER,
             name=DOMAIN,
-            update_interval=timedelta(minutes=1),
+            update_interval=timedelta(seconds=30),  # 테스트를 위해 30초로 설정
         )
 
     async def _async_update_data(self):
         """API에서 데이터를 가져옵니다."""
-        _LOGGER.debug("Fetching data from Kakao Subway API...")  # 로그 추가
+        _LOGGER.debug("Fetching data from Kakao Subway API...")
         try:
             url = f"https://place.map.kakao.com/m/main/v/{self.station_id}"
             _LOGGER.debug("URL: %s", url)
             async with self.session.get(url, timeout=10) as resp:
                 if resp.status != 200:
                     raise Exception(f"API 요청 실패: 상태 코드 {resp.status}")
-                data = await resp.json(content_type=None)  # content_type=None 추가
+                data = await resp.json(content_type=None)
                 _LOGGER.debug("API Response: %s", data)
 
                 if 'basicInfo' not in data or 'timeInfo' not in data['basicInfo']:
@@ -88,9 +87,9 @@ class KakaoSubwayDataUpdateCoordinator(DataUpdateCoordinator):
                 up_info = time_info.get('upTimeInfo', [])
                 down_info = time_info.get('downTimeInfo', [])
 
-                _LOGGER.debug("Time Info: %s", time_info)  # 로그 추가
-                _LOGGER.debug("Up Info: %s", up_info)    # 로그 추가
-                _LOGGER.debug("Down Info: %s", down_info)  # 로그 추가
+                _LOGGER.debug("Time Info: %s", time_info)
+                _LOGGER.debug("Up Info: %s", up_info)
+                _LOGGER.debug("Down Info: %s", down_info)
 
                 return {
                     "up_info": up_info,
@@ -98,11 +97,11 @@ class KakaoSubwayDataUpdateCoordinator(DataUpdateCoordinator):
                 }
 
         except (asyncio.TimeoutError, aiohttp.ClientError) as e:
-            _LOGGER.error("Error communicating with API: %s", e)  # 로그 추가
+            _LOGGER.error("Error communicating with API: %s", e)
             raise UpdateFailed(f"API 통신 에러: {e}")
         except json.JSONDecodeError as e:
-            _LOGGER.error("Error decoding JSON response: %s", e)  # 로그 추가
+            _LOGGER.error("Error decoding JSON response: %s", e)
             raise UpdateFailed(f"JSON 응답 디코딩 에러: {e}")
         except Exception as err:
-            _LOGGER.exception("Unexpected error: %s", err)  # 로그 추가
+            _LOGGER.exception("Unexpected error: %s", err)
             raise UpdateFailed(f"예상치 못한 에러: {err}")
