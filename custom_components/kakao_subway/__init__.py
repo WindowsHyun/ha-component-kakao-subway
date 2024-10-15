@@ -23,17 +23,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
 
     coordinator = KakaoSubwayDataUpdateCoordinator(hass, session, entry)
 
-    await coordinator.async_refresh()
-
-    # 1초 정도 기다립니다.
-    await asyncio.sleep(1)
+    await coordinator.async_config_entry_first_refresh()
 
     if not coordinator.last_update_success:
         raise ConfigEntryNotReady
 
     hass.data[DOMAIN][entry.entry_id] = coordinator
 
-    # async_forward_entry_setup -> async_forward_entry_setups
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     return True
@@ -65,7 +61,7 @@ class KakaoSubwayDataUpdateCoordinator(DataUpdateCoordinator):
             hass,
             _LOGGER,
             name=DOMAIN,
-            update_interval=timedelta(seconds=30),  # 테스트를 위해 30초로 설정
+            update_interval=timedelta(seconds=30),
         )
 
     async def _async_update_data(self):
@@ -96,12 +92,6 @@ class KakaoSubwayDataUpdateCoordinator(DataUpdateCoordinator):
                     "down_info": down_info
                 }
 
-        except (asyncio.TimeoutError, aiohttp.ClientError) as e:
-            _LOGGER.error("Error communicating with API: %s", e)
-            raise UpdateFailed(f"API 통신 에러: {e}")
-        except json.JSONDecodeError as e:
-            _LOGGER.error("Error decoding JSON response: %s", e)
-            raise UpdateFailed(f"JSON 응답 디코딩 에러: {e}")
         except Exception as err:
-            _LOGGER.exception("Unexpected error: %s", err)
-            raise UpdateFailed(f"예상치 못한 에러: {err}")
+            _LOGGER.exception("Error fetching data: %s", err)
+            raise UpdateFailed(f"Data update failed: {err}")

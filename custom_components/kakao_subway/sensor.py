@@ -14,7 +14,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
 
     sensors = [
         sensor_type(coordinator, direction, index, station_name)
-        for direction in ["upbound", "downbound"]
+        for direction in ["up", "down"]
         for index in [1, 2]
         for sensor_type in [KakaoSubwayDestinationSensor, KakaoSubwayTimeSensor]
     ]
@@ -38,7 +38,7 @@ class KakaoSubwayBaseSensor(CoordinatorEntity, SensorEntity):
     @property
     def name(self):
         """Return the name of the sensor."""
-        return f"{self.station_name} {self.direction.title()} #{self.index} {self.sensor_type.title()}"
+        return f"{self.station_name} {self.direction.title()}bound #{self.index} {self.sensor_type.title()}"
 
 class KakaoSubwayDestinationSensor(KakaoSubwayBaseSensor):
     """Representation of a Kakao Subway destination sensor."""
@@ -50,12 +50,13 @@ class KakaoSubwayDestinationSensor(KakaoSubwayBaseSensor):
     @property
     def state(self):
         """Return the state of the sensor."""
-        _LOGGER.debug("Getting state for destination sensor...")
-        info = self.coordinator.data.get(f"{self.direction[0]}p_info", [])
+        _LOGGER.debug("Getting state for destination sensor: %s", self._attr_unique_id)
+        info = self.coordinator.data.get(f"{self.direction}_info", [])
         if 0 <= self.index - 1 < len(info):
-            _LOGGER.debug("Destination: %s", info[self.index - 1].get("endStationName"))
-            return info[self.index - 1].get("endStationName")
-        _LOGGER.warning("Destination info not found for %s %s #%s", self.station_name, self.direction, self.index)
+            destination = info[self.index - 1].get("endStationName")
+            _LOGGER.debug("Destination: %s", destination)
+            return destination
+        _LOGGER.warning("Destination info not found for %s", self._attr_unique_id)
         return None
 
 class KakaoSubwayTimeSensor(KakaoSubwayBaseSensor):
@@ -68,10 +69,11 @@ class KakaoSubwayTimeSensor(KakaoSubwayBaseSensor):
     @property
     def state(self):
         """Return the state of the sensor."""
-        _LOGGER.debug("Getting state for time sensor...")
-        info = self.coordinator.data.get(f"{self.direction[0]}p_info", [])
+        _LOGGER.debug("Getting state for time sensor: %s", self._attr_unique_id)
+        info = self.coordinator.data.get(f"{self.direction}_info", [])
         if 0 <= self.index - 1 < len(info):
-            _LOGGER.debug("Time left: %s", info[self.index - 1].get("afterMinute"))
-            return info[self.index - 1].get("afterMinute")
-        _LOGGER.warning("Time info not found for %s %s #%s", self.station_name, self.direction, self.index)
+            time_left = info[self.index - 1].get("afterMinute")
+            _LOGGER.debug("Time left: %s", time_left)
+            return time_left
+        _LOGGER.warning("Time info not found for %s", self._attr_unique_id)
         return None
