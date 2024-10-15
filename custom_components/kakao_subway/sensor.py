@@ -37,7 +37,7 @@ class KakaoSubwayBaseSensor(CoordinatorEntity, SensorEntity):
     @property
     def name(self):
         """Return the name of the sensor."""
-        return f"{self.station_name} {self.direction.capitalize()} {self.index} {self.sensor_type.capitalize()}"
+        return f"{self.station_name} {self.direction.title()} {self.index} {self.sensor_type.title()}"
 
 class KakaoSubwayDestinationSensor(KakaoSubwayBaseSensor):
     """Representation of a Kakao Subway destination sensor."""
