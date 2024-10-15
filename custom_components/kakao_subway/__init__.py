@@ -70,15 +70,29 @@ class KakaoSubwayDataUpdateCoordinator(DataUpdateCoordinator):
         )
 
     async def _async_update_data(self):
-        """Fetch data from API endpoint."""
+        """API에서 데이터를 가져옵니다."""
         try:
             url = f"https://place.map.kakao.com/m/main/v/{self.station_id}"
-            async with self.session.get(url) as resp:
-                data = await resp.json()
+            async with self.session.get(url, timeout=10) as resp:
+                if resp.status != 200:
+                    raise Exception(f"API 요청 실패: 상태 코드 {resp.status}")
+                data = await resp.json(content_type=None)  # content_type=None 추가
+
+                if 'basicInfo' not in data or 'timeInfo' not in data['basicInfo']:
+                    raise Exception("잘못된 API 응답 구조: 필수 키가 없습니다.")
+
                 time_info = data['basicInfo']['timeInfo']
+                up_info = time_info.get('upTimeInfo', [])
+                down_info = time_info.get('downTimeInfo', [])
+
                 return {
-                    "up_info": time_info['upTimeInfo'],
-                    "down_info": time_info['downTimeInfo']
+                    "up_info": up_info,
+                    "down_info": down_info
                 }
+
+        except (asyncio.TimeoutError, aiohttp.ClientError) as e:
+            raise UpdateFailed(f"API 통신 에러: {e}")
+        except json.JSONDecodeError as e:
+            raise UpdateFailed(f"JSON 응답 디코딩 에러: {e}")
         except Exception as err:
-            raise UpdateFailed(f"Error communicating with API: {err}")
+            raise UpdateFailed(f"예상치 못한 에러: {err}")
