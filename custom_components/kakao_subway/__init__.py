@@ -14,6 +14,7 @@ PLATFORMS = ["sensor"]
 
 async def async_setup(hass: HomeAssistant, config: dict):
     """Set up the Kakao Subway component."""
+    hass.data[DOMAIN] = {}  # Add this line
     return True
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
